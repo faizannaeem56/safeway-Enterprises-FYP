@@ -1,6 +1,13 @@
 # Safeway Enterprises - Full-Stack MERN E-Commerce & Gemini AI Support Project (FYP)
 
-Welcome to the **Safeway Enterprises** Final Year Project (FYP) repository. This project is a complete, beginner-friendly, well-commented E-Commerce web application built using the **MERN Stack** (**M**ongoDB, **E**xpress.js, **R**eact.js, **N**ode.js) featuring real-time **Google Gemini AI Customer Support (`@google/generative-ai`)** and a full **Admin CRUD Panel**.
+## 🎓 Academic Context
+Welcome to the **Safeway Enterprises** Final Year Project (FYP) repository. This project is developed as the Final Year Project (FYP) for the **Bachelor of Science in Computer Science** program at the **National College of Business Administration and Economics**. This project is beginner-friendly, well-commented E-Commerce web application built using the **MERN Stack** (**M**ongoDB, **E**xpress.js, **R**eact.js, **N**ode.js) featuring real-time **Google Gemini AI Customer Support (`@google/generative-ai`)** and a full **Admin CRUD Panel**.
+
+* **Developer:** Faizan Naeem , Sadia Mushtaq & Iqra Naeem
+
+## 🏢 Project Overview
+Safeway Enterprises is a registered sole proprietorship. This system provides a comprehensive digital infrastructure to manage retail operations, cataloging, and customer interactions. It integrates a fully functional MERN stack backend with a real-time AI Assistant to handle customer queries regarding tech products and policies efficiently.
+
 
 ---
 
@@ -55,6 +62,13 @@ safeway-enterprises-mern/
 
 ## Step-by-Step Installation & Execution Guide
 
+## 🚀 Tech Stack & Core Features
+* **Frontend:** React.js
+* **Backend:** Node.js, Express.js
+* **Database:** MongoDB
+* **AI Integration:** Google Gemini AI API (Automated Chatbot & Policy Assistant)
+* **Security:** Environment variables for secure credential management (API keys, DB URIs) are strictly ignored via version control.
+
 ### Prerequisites
 1. **Node.js** (v18+ recommended) installed on your computer.
 2. **MongoDB** installed locally (`mongodb://127.0.0.1:27017/safeway_db`) OR a free **MongoDB Atlas** cloud URI.
@@ -94,3 +108,10 @@ Open `http://localhost:5173` in your browser.
 ### Default Test Accounts (Created by `npm run seed`)
 - **Admin Account:** `admin@safeway.pk` / Password: `password123`
 - **Customer Account:** `ali@student.edu.pk` / Password: `password123`
+
+
+
+
+
+
+
