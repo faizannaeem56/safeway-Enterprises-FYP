@@ -64,15 +64,15 @@ export default function Footer() {
           <ul className="space-y-2.5 text-sm text-slate-400">
             <li className="flex items-start gap-2">
               <MapPin className="w-4 h-4 text-blue-400 shrink-0 mt-1" />
-              <span>Plaza 42, Main Boulevard, Gulberg III, Lahore, Pakistan</span>
+              <span>112A Aitchion housing society, Lahore, Pakistan</span>
             </li>
             <li className="flex items-center gap-2">
               <Phone className="w-4 h-4 text-blue-400 shrink-0" />
-              <span>+92 (42) 3576-9900</span>
+              <span>+92 321-1006989</span>
             </li>
             <li className="flex items-center gap-2">
               <Mail className="w-4 h-4 text-blue-400 shrink-0" />
-              <span>support@safeway.pk</span>
+              <span>contact.safeway.ent@gmail.com</span>
             </li>
           </ul>
         </div>
@@ -80,7 +80,7 @@ export default function Footer() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10 pt-6 border-t border-slate-800 text-xs text-slate-500 flex flex-col sm:flex-row justify-between items-center gap-2">
         <p>© {new Date().getFullYear()} Safeway Enterprises. Built with MERN Stack & Google Gemini AI.</p>
-        <p>Free Shipping on orders Over $150 • 7-Day Easy Return Policy</p>
+        <p>Free Shipping on orders Over 10,000 • 7-Day Easy Return Policy</p>
       </div>
     </footer>
   );
