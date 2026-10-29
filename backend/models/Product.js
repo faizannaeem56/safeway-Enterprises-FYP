@@ -14,7 +14,7 @@ const mongoose = require('mongoose');
 // The exact 7 product categories required by Safeway Enterprises
 // Storing these in a constant array makes it easy to validate and maintain allowed categories
 const ALLOWED_CATEGORIES = [
-  'Computers',
+  'Computer',
   'Laptops',
   'Smart Watches',
   'Phones',
