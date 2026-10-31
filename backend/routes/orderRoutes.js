@@ -12,16 +12,18 @@ const { protect, adminOnly } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
-// POST /api/orders — Customer places an order from Cart.jsx (Saved in MongoDB `orders` collection)
+// POST /api/orders — Customer places an order from Cart.jsx
 router.post('/', async (req, res) => {
   try {
-    const { customerName, customerEmail, items, shippingAddress, paymentMethod, totalAmount } = req.body;
+    // req.body mein userId ko bhi receive karein taa ke logged-in user ka record save ho
+    const { userId, customerName, customerEmail, items, shippingAddress, paymentMethod, totalAmount } = req.body;
 
     if (!items || items.length === 0) {
       return res.status(400).json({ message: 'Your shopping cart is empty.' });
     }
 
     const createdOrder = await Order.create({
+      user: userId || null, // Agar user logged in hai toh uski ID save hogi, warna null (guest)
       customerName: customerName || shippingAddress?.fullName || 'Customer',
       customerEmail: customerEmail || 'customer@safeway.pk',
       items,
@@ -48,12 +50,15 @@ router.post('/', async (req, res) => {
 });
 
 // GET /api/orders — Fetch all orders from MongoDB (Used by Admin Panel & My orders page)
-router.get('/', async (req, res) => {
+router.get('/', protect, async (req, res) => { // <-- protect middleware add kiya gaya hai
   try {
-    const filter = {};
-    if (req.query.email) {
-      filter.customerEmail = req.query.email;
+    let filter = {};
+    
+    // MAIN FIX: Agar user Admin NAHI hai, toh sirf uske apne email wale orders filter karo
+    if (req.user && !req.user.isAdmin) {
+      filter.customerEmail = req.user.email;
     }
+
     const orders = await Order.find(filter).sort({ createdAt: -1 });
     res.json(orders);
   } catch (error) {
@@ -61,7 +66,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// PUT /api/orders/:id/status — Admin updates Order Status ('Processing' | 'Shipped' | 'Delivered' | 'Cancelled')
+// PUT /api/orders/:id/status — Admin updates Order Status
 router.put('/:id/status', protect, adminOnly, async (req, res) => {
   try {
     const updated = await Order.findByIdAndUpdate(
@@ -78,7 +83,7 @@ router.put('/:id/status', protect, adminOnly, async (req, res) => {
   }
 });
 
-// DELETE /api/orders/:id — Admin deletes an order record from MongoDB
+// DELETE /api/orders/:id — Admin deletes an order record
 router.delete('/:id', protect, adminOnly, async (req, res) => {
   try {
     await Order.findByIdAndDelete(req.params.id);
