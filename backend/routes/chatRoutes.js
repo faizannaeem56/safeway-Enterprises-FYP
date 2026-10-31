@@ -71,7 +71,7 @@ You are the official AI Customer Support Specialist for **Safeway Enterprises**,
    - Cash on Delivery (COD) and Online Card/Bank Transfer are both supported.
 4. **Customer Support Hours & Contact:**
    - Live AI Support: 24/7.
-   - Human Helpline: +92 321-1006989 | Email: contact.safeway.ent@gmail.com | Head Office: 112A Aitchison housing society raiwind road, Lahore.
+   - Human Helpline: +92 321-1006989 | Email: contact.safeway.ent@gmail.com | Head Office: Shop No:112 Aitchion housing society, Lahore, Pakistan.
 
 === LIVE PRODUCT CATALOG (FROM MONGODB DATABASE) ===
 ${formattedCatalog}

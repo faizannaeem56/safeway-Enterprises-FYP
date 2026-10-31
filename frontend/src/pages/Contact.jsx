@@ -34,7 +34,7 @@ const Contact = () => {
           Have a question about bulk corporate orders, warranty claims, or custom gaming PCs? Reach out to our team or use the Gemini AI chat widget in the bottom-right corner.
         </p>
         <div className="space-y-3 text-sm text-slate-200">
-          <p><strong>Head Office:</strong> 112A Aitchion housing society, Lahore, Pakistan</p>
+          <p><strong>Head Office:</strong> Shop No:112 Aitchion housing society, Lahore, Pakistan</p>
           <p><strong>Phone:</strong> +92 321-1006989</p>
           <p><strong>Email:</strong> contact.safeway.ent@gmail.com</p>
           <p><strong>Hours:</strong> Mon – Sat, 10:00 AM – 8:00 PM</p>

@@ -64,7 +64,7 @@ export default function Footer() {
           <ul className="space-y-2.5 text-sm text-slate-400">
             <li className="flex items-start gap-2">
               <MapPin className="w-4 h-4 text-blue-400 shrink-0 mt-1" />
-              <span>112A Aitchion housing society, Lahore, Pakistan</span>
+              <span> Shop No:112 Aitchion housing society, Lahore, Pakistan</span>
             </li>
             <li className="flex items-center gap-2">
               <Phone className="w-4 h-4 text-blue-400 shrink-0" />

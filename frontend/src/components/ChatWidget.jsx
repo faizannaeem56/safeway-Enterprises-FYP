@@ -142,7 +142,7 @@ export default function ChatWidget() {
           {/* Quick Suggestion Chips for Easy FYP Viva Demo */}
           <div className="px-3 py-1.5 bg-slate-100 border-t border-slate-200 flex gap-1.5 overflow-x-auto">
             <button
-              onClick={() => handleSendMessage('Do you have gaming laptops under 1400?')}
+              onClick={() => handleSendMessage()}
               className="text-[11px] bg-white border border-slate-300 px-2.5 py-1 rounded-full whitespace-nowrap hover:border-blue-500 text-slate-700"
             >
             </button>
