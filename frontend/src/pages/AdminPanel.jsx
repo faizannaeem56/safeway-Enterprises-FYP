@@ -22,7 +22,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 
 const CATEGORIES = [
-  'Computers',
+  'Computer',
   'Laptops',
   'Smart Watches',
   'Phones',
