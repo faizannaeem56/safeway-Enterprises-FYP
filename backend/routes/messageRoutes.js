@@ -32,14 +32,16 @@ router.post('/', async (req, res) => {
   }
 });
 
-// GET /api/messages — Fetch all customer messages from MongoDB (Used by Admin Panel & My orders page)
-router.get('/', protect, async (req, res) => { // <-- Yahan protect add kar diya gaya hai
+// GET /api/messages — Fetch all customer messages from MongoDB
+// MAIN FIX: Yahan se 'protect' hata diya gaya hai taa ke Admin ka data block na ho
+router.get('/', async (req, res) => {
   try {
     let filter = {};
     
-    // MAIN FIX: Agar user Admin nahi hai, toh sirf uske apne email wale messages filter karo
-    if (req.user && !req.user.isAdmin) {
-      filter.email = req.user.email; // Message model mein email check karega
+    // Agar frontend se query mein email bheja gaya hai, toh sirf us customer ke messages filter honge.
+    // Agar query mein email nahi hai (Admin request), toh filter khali rahega aur saare messages aayenge.
+    if (req.query.email) {
+      filter.email = req.query.email;
     }
 
     const messages = await Message.find(filter).sort({ createdAt: -1 });

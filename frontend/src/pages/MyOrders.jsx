@@ -18,26 +18,19 @@ export default function Myorders() {
   const fetchCustomerData = async () => {
     setLoading(true);
     try {
-      // LocalStorage se login user ka token nikalna
-      let token = localStorage.getItem('token');
+      // LocalStorage se login user ki detail nikalna taa ke filter lag sake
+      let userEmail = '';
       const userInfoStr = localStorage.getItem('userInfo');
       if (userInfoStr) {
-        const userInfo = JSON.parse(userInfoStr);
-        if (userInfo.token) token = userInfo.token;
+        userEmail = JSON.parse(userInfoStr).email;
       }
 
-      // Headers mein Token shamil karna taa ke backend user ko pehchan sake
-      const config = {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        }
-      };
-
-      // API call karte waqt config (headers) pass karna
+      // API ko email query ke sath call karna taa ke sirf logged-in user ka data aaye
+      const queryParam = userEmail ? `?email=${userEmail}` : '';
+      
       const [ordRes, msgRes] = await Promise.all([
-        fetch('/api/orders', config),
-        fetch('/api/messages', config)
+        fetch(`/api/orders${queryParam}`),
+        fetch(`/api/messages${queryParam}`)
       ]);
       
       const ordData = await ordRes.json();

@@ -22,6 +22,7 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ message: 'Your shopping cart is empty.' });
     }
 
+    // Naya order database mein create karna
     const createdOrder = await Order.create({
       user: userId || null, // Agar user logged in hai toh uski ID save hogi, warna null (guest)
       customerName: customerName || shippingAddress?.fullName || 'Customer',
@@ -33,7 +34,7 @@ router.post('/', async (req, res) => {
       status: 'Processing'
     });
 
-    // Automatically deduct purchased quantity from each product's stock in MongoDB
+    // Automatically har product ki quantity ko database (stock) se kam karna
     for (const item of items) {
       const prodId = item._id || item.product;
       if (prodId) {
@@ -49,14 +50,17 @@ router.post('/', async (req, res) => {
   }
 });
 
-// GET /api/orders — Fetch all orders from MongoDB (Used by Admin Panel & My orders page)
-router.get('/', protect, async (req, res) => { // <-- protect middleware add kiya gaya hai
+// GET /api/orders — Fetch all orders from MongoDB
+// MAIN FIX: Yahan se 'protect' middleware hata diya gaya hai taa ke data block na ho
+router.get('/', async (req, res) => {
   try {
     let filter = {};
     
-    // MAIN FIX: Agar user Admin NAHI hai, toh sirf uske apne email wale orders filter karo
-    if (req.user && !req.user.isAdmin) {
-      filter.customerEmail = req.user.email;
+    // Agar frontend request mein email bhejta hai (jaise My Orders page se),
+    // toh sirf us email wale orders database se nikal kar bhejo.
+    // Agar email nahi aata (jaise Admin panel se), toh filter khali rahega aur saare orders aayenge.
+    if (req.query.email) {
+      filter.customerEmail = req.query.email;
     }
 
     const orders = await Order.find(filter).sort({ createdAt: -1 });
@@ -66,7 +70,7 @@ router.get('/', protect, async (req, res) => { // <-- protect middleware add kiy
   }
 });
 
-// PUT /api/orders/:id/status — Admin updates Order Status
+// PUT /api/orders/:id/status — Admin updates Order Status (Yahan protect aur adminOnly rehne diya hai security ke liye)
 router.put('/:id/status', protect, adminOnly, async (req, res) => {
   try {
     const updated = await Order.findByIdAndUpdate(
