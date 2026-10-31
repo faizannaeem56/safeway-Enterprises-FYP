@@ -9,10 +9,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Package, Mail, RefreshCw } from 'lucide-react';
-import { useAuth } from '../context/AuthContext'; // <-- Navbar ki tarah AuthContext import kar liya
+import { useAuth } from '../context/AuthContext';
 
 export default function Myorders() {
-  const { user } = useAuth(); // <-- Direct AuthContext se logged-in user nikal liya
+  const { user } = useAuth();
   const [orders, setorders] = useState([]);
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -20,10 +20,8 @@ export default function Myorders() {
   const fetchCustomerData = async () => {
     setLoading(true);
     try {
-      // User email nikalne ka sab se secure aur authentic tareeqa
       let userEmail = user?.email || '';
 
-      // Agar AuthContext se foran email na mile, toh localStorage ke saare possible keys check kar lo
       if (!userEmail) {
         const userInfoStr = localStorage.getItem('userInfo') || localStorage.getItem('user') || localStorage.getItem('customerInfo');
         if (userInfoStr) {
@@ -32,7 +30,7 @@ export default function Myorders() {
         }
       }
 
-      console.log("Verified User Email for Orders:", userEmail);
+      console.log("Fetching customer portal data for email:", userEmail);
 
       if (!userEmail) {
         setorders([]);
@@ -41,7 +39,6 @@ export default function Myorders() {
         return;
       }
 
-      // Backend ko email bhejne ke liye Headers aur Query dono use kar rahe hain
       const config = {
         headers: {
           'Content-Type': 'application/json',
@@ -59,8 +56,17 @@ export default function Myorders() {
       const ordData = await ordRes.json();
       const msgData = await msgRes.json();
       
+      console.log("Fetched Orders:", ordData);
+      console.log("Fetched Messages:", msgData); // Console mein check karne ke liye ke messages aaye ya nahi
+
       if (Array.isArray(ordData)) setorders(ordData);
-      if (Array.isArray(msgData)) setMessages(msgData);
+      
+      // Yahan hum ensure kar rahe hain ke agar array aaye toh state set ho jaye
+      if (Array.isArray(msgData)) {
+        setMessages(msgData);
+      } else {
+        setMessages([]);
+      }
     } catch (err) {
       console.error('Error loading orders/messages:', err);
     } finally {
@@ -68,7 +74,6 @@ export default function Myorders() {
     }
   };
 
-  // Jab bhi user state change ho ya page load ho, data fetch ho jaye
   useEffect(() => {
     fetchCustomerData();
   }, [user]);
@@ -189,37 +194,43 @@ export default function Myorders() {
           </Link>
         </div>
 
-        <div className="divide-y divide-slate-100">
-          {messages.map((msg) => (
-            <div key={msg._id} className="p-5 text-xs space-y-2">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="font-bold text-slate-900 text-sm">
-                  {msg.subject}{' '}
-                  <span className="font-normal text-xs text-slate-500">
-                    — sent by {msg.name} ({msg.email})
+        {messages.length === 0 ? (
+          <div className="p-8 text-center text-xs text-slate-500">
+            No support messages found yet. Send a message from the Contact Us page!
+          </div>
+        ) : (
+          <div className="divide-y divide-slate-100">
+            {messages.map((msg) => (
+              <div key={msg._id} className="p-5 text-xs space-y-2">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="font-bold text-slate-900 text-sm">
+                    {msg.subject}{' '}
+                    <span className="font-normal text-xs text-slate-500">
+                      — sent by {msg.name} ({msg.email})
+                    </span>
+                  </div>
+                  <span
+                    className={`px-2.5 py-0.5 rounded-full font-bold text-[11px] ${
+                      msg.status === 'Replied'
+                        ? 'bg-emerald-100 text-emerald-800'
+                        : msg.status === 'Read'
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-amber-100 text-amber-800'
+                    }`}
+                  >
+                    {msg.status || 'Unread'}
                   </span>
                 </div>
-                <span
-                  className={`px-2.5 py-0.5 rounded-full font-bold text-[11px] ${
-                    msg.status === 'Replied'
-                      ? 'bg-emerald-100 text-emerald-800'
-                      : msg.status === 'Read'
-                      ? 'bg-blue-100 text-blue-800'
-                      : 'bg-amber-100 text-amber-800'
-                  }`}
-                >
-                  {msg.status}
-                </span>
+                <p className="text-slate-600">{msg.message}</p>
+                {msg.adminReply && (
+                  <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900">
+                    <strong>Official Safeway Admin Reply:</strong> {msg.adminReply}
+                  </div>
+                )}
               </div>
-              <p className="text-slate-600">{msg.message}</p>
-              {msg.adminReply && (
-                <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900">
-                  <strong>Official Safeway Admin Reply:</strong> {msg.adminReply}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
