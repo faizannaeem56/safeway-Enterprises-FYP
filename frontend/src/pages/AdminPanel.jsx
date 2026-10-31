@@ -111,22 +111,6 @@ export default function AdminPanel() {
       </div>
     );
   }
-  {/* ============================================================================
-    IMAGE URL INPUT: Allows admin to paste a direct image link from Google
-    ============================================================================ */}
-<div className="mb-4">
-  <label className="block text-sm font-semibold text-slate-700 mb-1">
-    Product Picture URL (Link)
-  </label>
-  <input
-    type="text"
-    name="image"
-    // Note: 'formData' ki jagah wo state variable likhein jo aapke baqi inputs mein use ho raha hai
-    onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-    placeholder="https://... (Google se copy ki hui image ka link paste karein)"
-    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
-  />
-</div>
 
   const handleorderstatusChange = async (orderId, newStatus) => {
     try {
@@ -598,6 +582,18 @@ export default function AdminPanel() {
               onChange={(e) => setFormData({ ...formData, warranty: e.target.value })}
               className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs"
             />
+
+            {/* ============================================================================
+                IMAGE URL INPUT: Properly placed inside the form so it displays on screen
+                ============================================================================ */}
+            <input
+              type="text"
+              placeholder="Product Picture URL (Link from Google) *"
+              value={formData.image}
+              onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+              className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs"
+            />
+
             <textarea
               rows="3"
               required
