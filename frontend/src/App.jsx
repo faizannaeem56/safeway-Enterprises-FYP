@@ -1,45 +1,84 @@
 /**
  * ============================================================================
- * FILE: frontend/src/App.jsx
- * PURPOSE: Main Layout and Route Configuration for Safeway Enterprises.
- * CONNECTS: Navbar, Page Routes (Home, Shop, Cart, Myorders, Auth, Admin, About, Contact),
- *           Floating Gemini AI Chat Support Widget, and Footer.
+ * FILE: frontend/src/pages/ProductDetails.jsx
+ * PURPOSE: Fetch and display single product details from MongoDB.
  * ============================================================================
  */
 
-import React from 'react';
-import { Routes, Route } from 'react-router-dom';
-import Navbar from './components/Navbar';
-import Footer from './components/Footer';
-import ChatWidget from './components/ChatWidget';
+import React, { useState, useEffect } from 'react';
+import { useParams, Link } from 'react-router-dom';
 
-import Home from './pages/Home';
-import Shop from './pages/Shop';
-import Cart from './pages/Cart';
-import Myorders from './pages/MyOrders';
-import Auth from './pages/Auth';
-import AdminPanel from './pages/AdminPanel';
-import About from './pages/About';
-import Contact from './pages/Contact';
+export default function ProductDetails() {
+  const { id } = useParams();
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-export default function App() {
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const res = await fetch(`/api/products/${id}`);
+        const data = await res.json();
+        setProduct(data);
+      } catch (err) {
+        console.error('Error fetching product:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProduct();
+  }, [id]);
+
+  if (loading) {
+    return <div className="text-center py-20 text-slate-500">Loading Safeway Product...</div>;
+  }
+
+  if (!product || product.message === "Product not found") {
+    return (
+      <div className="text-center py-20">
+        <h2 className="text-2xl font-bold text-slate-900">Product Not Found</h2>
+        <Link to="/shop" className="text-blue-600 hover:underline mt-4 inline-block">Go back to Shop</Link>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900">
-      <Navbar />
-      <main className="flex-grow">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/shop" element={<Shop />} />
-          <Route path="/cart" element={<Cart />} />
-          <Route path="/orders" element={<Myorders />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/admin" element={<AdminPanel />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/contact" element={<Contact />} />
-        </Routes>
-      </main>
-      <ChatWidget />
-      <Footer />
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <Link to="/shop" className="text-blue-600 hover:underline text-sm font-semibold mb-6 inline-block">
+        &larr; Back to Shop
+      </Link>
+      
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col md:flex-row">
+        {/* Product Image */}
+        <div className="md:w-1/2 bg-slate-100 p-8 flex items-center justify-center">
+          <img 
+            src={product.image || product.imageUrl || 'https://via.placeholder.com/500'} 
+            alt={product.name} 
+            className="max-w-full max-h-96 object-contain rounded-xl"
+          />
+        </div>
+        
+        {/* Product Info */}
+        <div className="md:w-1/2 p-8 lg:p-12 flex flex-col justify-center">
+          <span className="text-xs font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-3 py-1 rounded-full w-fit mb-4">
+            {product.category}
+          </span>
+          <h1 className="text-3xl lg:text-4xl font-extrabold text-slate-900 mb-4">{product.name}</h1>
+          <p className="text-2xl font-extrabold text-slate-900 mb-6">
+            Rs. {Number(product.price).toLocaleString()}
+          </p>
+          <div className="text-slate-600 space-y-4 mb-8 text-sm lg:text-base leading-relaxed">
+            <p>{product.description}</p>
+            {product.specs && <p><strong>Specifications:</strong> {product.specs}</p>}
+            {product.warranty && <p><strong>Warranty:</strong> {product.warranty}</p>}
+          </div>
+          
+          <div className="mt-auto">
+            <button className="w-full sm:w-auto px-8 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold transition shadow-sm">
+              Add to Cart
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
-}
+}s
