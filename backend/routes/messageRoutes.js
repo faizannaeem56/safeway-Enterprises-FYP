@@ -37,12 +37,17 @@ router.get('/', async (req, res) => {
     let filter = {};
     const userEmail = req.query.email || req.headers['user-email'];
     
-    // Agar email diya gaya hai, toh sirf us specific customer ke messages filter honge
     if (userEmail) {
-      filter.email = { $regex: new RegExp(`^${userEmail}$`, 'i') };
+      // Yahan hum email ke sath sath yeh bhi check kar rahe hain ke agar 
+      // database mein field ka naam 'customerEmail' ho ya 'email', dono ko pakad le!
+      const cleanEmail = userEmail.trim();
+      filter = {
+        $or: [
+          { email: { $regex: new RegExp(`^${cleanEmail}$`, 'i') } },
+          { customerEmail: { $regex: new RegExp(`^${cleanEmail}$`, 'i') } }
+        ]
+      };
     }
-    // Note: Agar email nahi aata (jaise Admin Panel ya general sync se), 
-    // toh filter empty rahega aur saare messages fetch ho jayenge.
 
     const messages = await Message.find(filter).sort({ createdAt: -1 });
     res.json(messages);
