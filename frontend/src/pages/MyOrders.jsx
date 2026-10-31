@@ -18,15 +18,25 @@ export default function Myorders() {
   const fetchCustomerData = async () => {
     setLoading(true);
     try {
-      // LocalStorage se login user ki detail nikalna taa ke filter lag sake
       let userEmail = '';
       const userInfoStr = localStorage.getItem('userInfo');
+      
       if (userInfoStr) {
-        userEmail = JSON.parse(userInfoStr).email;
+        const parsedInfo = JSON.parse(userInfoStr);
+        // Email extract karne ka secure tareeqa
+        userEmail = parsedInfo.email || parsedInfo.user?.email || '';
       }
 
-      // API ko email query ke sath call karna taa ke sirf logged-in user ka data aaye
-      const queryParam = userEmail ? `?email=${userEmail}` : '';
+      // 🚨 MAIN SECURITY FIX: Agar user ka email nahi hai (guest user), toh API call yahin rok dein!
+      if (!userEmail) {
+        setorders([]);
+        setMessages([]);
+        setLoading(false);
+        return; // Is se aage ka code nahi chalega aur sabke orders show nahi honge
+      }
+
+      // Agar email mil jaye toh sirf us email ka data mangwayein
+      const queryParam = `?email=${userEmail}`;
       
       const [ordRes, msgRes] = await Promise.all([
         fetch(`/api/orders${queryParam}`),
