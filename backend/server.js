@@ -100,5 +100,7 @@ const PORT = process.env.PORT || 5000;
 
 // Start listening for incoming HTTP requests on the specified PORT
 app.listen(PORT, () => {
-  console.log(`🚀 Safeway Enterprises Backend Server running on http://localhost:${PORT}`);
+console.log(`🚀 Safeway Enterprises Backend Server running on http://localhost:${PORT}`);
 });
+// For VERCEL DEPLOYMENT:
+module.exports = app;
