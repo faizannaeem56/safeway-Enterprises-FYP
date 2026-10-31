@@ -19,28 +19,34 @@ export default function Myorders() {
     setLoading(true);
     try {
       let userEmail = '';
-      const userInfoStr = localStorage.getItem('userInfo');
+      // 'userInfo' ya 'user' kisi bhi naam se save ho, hum email nikal lenge
+      const userInfoStr = localStorage.getItem('userInfo') || localStorage.getItem('user');
       
       if (userInfoStr) {
         const parsedInfo = JSON.parse(userInfoStr);
-        // Email extract karne ka secure tareeqa
         userEmail = parsedInfo.email || parsedInfo.user?.email || '';
       }
 
-      // 🚨 MAIN SECURITY FIX: Agar user ka email nahi hai (guest user), toh API call yahin rok dein!
       if (!userEmail) {
         setorders([]);
         setMessages([]);
         setLoading(false);
-        return; // Is se aage ka code nahi chalega aur sabke orders show nahi honge
+        return; 
       }
 
-      // Agar email mil jaye toh sirf us email ka data mangwayein
-      const queryParam = `?email=${userEmail}`;
+      // Headers mein 'user-email' attach kar ke bhej rahe hain
+      const config = {
+        headers: {
+          'Content-Type': 'application/json',
+          'user-email': userEmail 
+        }
+      };
+
+      const queryParam = `?email=${encodeURIComponent(userEmail)}`;
       
       const [ordRes, msgRes] = await Promise.all([
-        fetch(`/api/orders${queryParam}`),
-        fetch(`/api/messages${queryParam}`)
+        fetch(`/api/orders${queryParam}`, config),
+        fetch(`/api/messages${queryParam}`, config)
       ]);
       
       const ordData = await ordRes.json();
