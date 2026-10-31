@@ -1,13 +1,12 @@
 {
-  "version": 2,
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/backend/server.js"
+  "services": {
+    "backend": {
+      "root": "backend",
+      "framework": "express"
     },
-    {
-      "source": "/((?!api/).*)",
-      "destination": "/frontend/dist/index.html"
+    "frontend": {
+      "root": "frontend",
+      "framework": "vite"
     }
-  ]
+  }
 }
