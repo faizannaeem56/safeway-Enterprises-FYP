@@ -19,22 +19,28 @@ export default function Myorders() {
     setLoading(true);
     try {
       let userEmail = '';
-      // 'userInfo' ya 'user' kisi bhi naam se save ho, hum email nikal lenge
-      const userInfoStr = localStorage.getItem('userInfo') || localStorage.getItem('user');
       
+      // Har possible key check kar rahe hain
+      const userInfoStr = localStorage.getItem('userInfo') || localStorage.getItem('user') || localStorage.getItem('customerInfo');
+      
+      console.log("1. LocalStorage Data:", userInfoStr); // Browser ke console mein check karne ke liye
+
       if (userInfoStr) {
         const parsedInfo = JSON.parse(userInfoStr);
-        userEmail = parsedInfo.email || parsedInfo.user?.email || '';
+        userEmail = parsedInfo.email || parsedInfo.user?.email || parsedInfo.customerEmail || '';
       }
 
+      console.log("2. Extracted Email:", userEmail); // Check karein email nikla ya nahi
+
       if (!userEmail) {
+        // ALERT: Agar email nahi mila toh screen par popup aayega
+        alert("System ko aapka login email nahi mila! Kripya logout karke dobara login karein.");
         setorders([]);
         setMessages([]);
         setLoading(false);
         return; 
       }
 
-      // Headers mein 'user-email' attach kar ke bhej rahe hain
       const config = {
         headers: {
           'Content-Type': 'application/json',
@@ -43,6 +49,7 @@ export default function Myorders() {
       };
 
       const queryParam = `?email=${encodeURIComponent(userEmail)}`;
+      console.log("3. API Call URL:", `/api/orders${queryParam}`);
       
       const [ordRes, msgRes] = await Promise.all([
         fetch(`/api/orders${queryParam}`, config),
@@ -52,6 +59,8 @@ export default function Myorders() {
       const ordData = await ordRes.json();
       const msgData = await msgRes.json();
       
+      console.log("4. Backend se aaya Data:", ordData);
+
       if (Array.isArray(ordData)) setorders(ordData);
       if (Array.isArray(msgData)) setMessages(msgData);
     } catch (err) {
