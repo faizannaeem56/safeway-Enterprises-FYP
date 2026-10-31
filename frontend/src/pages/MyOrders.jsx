@@ -9,8 +9,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Package, Mail, RefreshCw } from 'lucide-react';
+import { useAuth } from '../context/AuthContext'; // <-- Navbar ki tarah AuthContext import kar liya
 
 export default function Myorders() {
+  const { user } = useAuth(); // <-- Direct AuthContext se logged-in user nikal liya
   const [orders, setorders] = useState([]);
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -18,29 +20,28 @@ export default function Myorders() {
   const fetchCustomerData = async () => {
     setLoading(true);
     try {
-      let userEmail = '';
-      
-      // Har possible key check kar rahe hain
-      const userInfoStr = localStorage.getItem('userInfo') || localStorage.getItem('user') || localStorage.getItem('customerInfo');
-      
-      console.log("1. LocalStorage Data:", userInfoStr); // Browser ke console mein check karne ke liye
+      // User email nikalne ka sab se secure aur authentic tareeqa
+      let userEmail = user?.email || '';
 
-      if (userInfoStr) {
-        const parsedInfo = JSON.parse(userInfoStr);
-        userEmail = parsedInfo.email || parsedInfo.user?.email || parsedInfo.customerEmail || '';
+      // Agar AuthContext se foran email na mile, toh localStorage ke saare possible keys check kar lo
+      if (!userEmail) {
+        const userInfoStr = localStorage.getItem('userInfo') || localStorage.getItem('user') || localStorage.getItem('customerInfo');
+        if (userInfoStr) {
+          const parsed = JSON.parse(userInfoStr);
+          userEmail = parsed.email || parsed.user?.email || '';
+        }
       }
 
-      console.log("2. Extracted Email:", userEmail); // Check karein email nikla ya nahi
+      console.log("Verified User Email for Orders:", userEmail);
 
       if (!userEmail) {
-        // ALERT: Agar email nahi mila toh screen par popup aayega
-        alert("System ko aapka login email nahi mila! Kripya logout karke dobara login karein.");
         setorders([]);
         setMessages([]);
         setLoading(false);
-        return; 
+        return;
       }
 
+      // Backend ko email bhejne ke liye Headers aur Query dono use kar rahe hain
       const config = {
         headers: {
           'Content-Type': 'application/json',
@@ -49,7 +50,6 @@ export default function Myorders() {
       };
 
       const queryParam = `?email=${encodeURIComponent(userEmail)}`;
-      console.log("3. API Call URL:", `/api/orders${queryParam}`);
       
       const [ordRes, msgRes] = await Promise.all([
         fetch(`/api/orders${queryParam}`, config),
@@ -59,8 +59,6 @@ export default function Myorders() {
       const ordData = await ordRes.json();
       const msgData = await msgRes.json();
       
-      console.log("4. Backend se aaya Data:", ordData);
-
       if (Array.isArray(ordData)) setorders(ordData);
       if (Array.isArray(msgData)) setMessages(msgData);
     } catch (err) {
@@ -70,9 +68,10 @@ export default function Myorders() {
     }
   };
 
+  // Jab bhi user state change ho ya page load ho, data fetch ho jaye
   useEffect(() => {
     fetchCustomerData();
-  }, []);
+  }, [user]);
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
