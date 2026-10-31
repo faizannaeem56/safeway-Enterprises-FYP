@@ -7,7 +7,7 @@
  *   Instead of hardcoded `if-else` rules, this route fetches the LIVE product
  *   catalog directly from MongoDB and injects it—along with Safeway Enterprises'
  *   official warranty, shipping, and return policies—into the Gemini AI
- *   system prompt. Customers can ask natural questions and get accurate answe$
+ *   system prompt. Customers can ask natural questions and get accurate answers
  * ============================================================================
  */
 
@@ -71,7 +71,7 @@ You are the official AI Customer Support Specialist for **Safeway Enterprises**,
    - Cash on Delivery (COD) and Online Card/Bank Transfer are both supported.
 4. **Customer Support Hours & Contact:**
    - Live AI Support: 24/7.
-   - Human Helpline: +92 (42) 3576-9900 | Email: support@safeway.pk | Head Office: Gulberg III, Lahore.
+   - Human Helpline: +92 321-1006989 | Email: contact.safeway.ent@gmail.com | Head Office: 112A Aitchison housing society raiwind road, Lahore.
 
 === LIVE PRODUCT CATALOG (FROM MONGODB DATABASE) ===
 ${formattedCatalog}
