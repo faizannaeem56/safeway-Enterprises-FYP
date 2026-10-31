@@ -79,7 +79,7 @@ export default function Footer() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10 pt-6 border-t border-slate-800 text-xs text-slate-500 flex flex-col sm:flex-row justify-between items-center gap-2">
-        <p>© {new Date().getFullYear()} Safeway Enterprises. Built with MERN Stack & Google Gemini AI.</p>
+        <p>© {new Date().getFullYear()} Safeway Enterprises. Built with MERN Stack .</p>
         <p>Free Shipping on orders Over 10,000 • 7-Day Easy Return Policy</p>
       </div>
     </footer>
