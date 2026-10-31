@@ -18,12 +18,31 @@ export default function Myorders() {
   const fetchCustomerData = async () => {
     setLoading(true);
     try {
+      // LocalStorage se login user ka token nikalna
+      let token = localStorage.getItem('token');
+      const userInfoStr = localStorage.getItem('userInfo');
+      if (userInfoStr) {
+        const userInfo = JSON.parse(userInfoStr);
+        if (userInfo.token) token = userInfo.token;
+      }
+
+      // Headers mein Token shamil karna taa ke backend user ko pehchan sake
+      const config = {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        }
+      };
+
+      // API call karte waqt config (headers) pass karna
       const [ordRes, msgRes] = await Promise.all([
-        fetch('/api/orders'),
-        fetch('/api/messages')
+        fetch('/api/orders', config),
+        fetch('/api/messages', config)
       ]);
+      
       const ordData = await ordRes.json();
       const msgData = await msgRes.json();
+      
       if (Array.isArray(ordData)) setorders(ordData);
       if (Array.isArray(msgData)) setMessages(msgData);
     } catch (err) {
@@ -95,7 +114,7 @@ export default function Myorders() {
                   </div>
                   <div className="flex items-center gap-2.5">
                     <span
-                      className={`px-3 py-1 rounded-full text-xs font-bold Rs.{
+                      className={`px-3 py-1 rounded-full text-xs font-bold ${
                         ord.status === 'Delivered'
                           ? 'bg-emerald-100 text-emerald-800'
                           : ord.status === 'Shipped'
@@ -164,7 +183,7 @@ export default function Myorders() {
                   </span>
                 </div>
                 <span
-                  className={`px-2.5 py-0.5 rounded-full font-bold text-[11px] Rs.{
+                  className={`px-2.5 py-0.5 rounded-full font-bold text-[11px] ${
                     msg.status === 'Replied'
                       ? 'bg-emerald-100 text-emerald-800'
                       : msg.status === 'Read'
