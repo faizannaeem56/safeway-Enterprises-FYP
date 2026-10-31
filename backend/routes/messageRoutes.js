@@ -33,9 +33,16 @@ router.post('/', async (req, res) => {
 });
 
 // GET /api/messages — Fetch all customer messages from MongoDB (Used by Admin Panel & My orders page)
-router.get('/', async (req, res) => {
+router.get('/', protect, async (req, res) => { // <-- Yahan protect add kar diya gaya hai
   try {
-    const messages = await Message.find({}).sort({ createdAt: -1 });
+    let filter = {};
+    
+    // MAIN FIX: Agar user Admin nahi hai, toh sirf uske apne email wale messages filter karo
+    if (req.user && !req.user.isAdmin) {
+      filter.email = req.user.email; // Message model mein email check karega
+    }
+
+    const messages = await Message.find(filter).sort({ createdAt: -1 });
     res.json(messages);
   } catch (error) {
     res.status(500).json({ message: 'Failed to load messages', error: error.message });
