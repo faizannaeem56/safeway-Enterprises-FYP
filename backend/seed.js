@@ -24,7 +24,7 @@ const sampleProducts = [
   {
     name: 'Safeway Titan Pro RTX 4070 Gaming Desktop',
     category: 'Computers',
-    price: 1499,
+    price: 850000,
     stock: 8,
     warranty: '2 Years Official Safeway Hardware Warranty',
     specs: 'Intel Core i7-14700KF, NVIDIA RTX 4070 12GB, 32GB DDR5 RAM, 1TB NVMe SSD',
@@ -36,7 +36,7 @@ const sampleProducts = [
   {
     name: 'Dell OptiPlex 7010 Business Mini Tower PC',
     category: 'Computers',
-    price: 649,
+    price: 80000,
     stock: 15,
     warranty: '1 Year Official Dell Warranty',
     specs: 'Intel Core i5-13500, 16GB DDR4 RAM, 512GB NVMe SSD, Windows 11 Pro',
@@ -50,7 +50,7 @@ const sampleProducts = [
   {
     name: 'ASUS ROG Strix G16 Gaming Laptop',
     category: 'Laptops',
-    price: 1299,
+    price: 125000,
     stock: 11,
     warranty: '2 Years International + Safeway Warranty',
     specs: 'Intel Core i7-13650HX, RTX 4060 8GB, 16GB DDR5, 1TB SSD, 16" 165Hz Display',
@@ -62,7 +62,7 @@ const sampleProducts = [
   {
     name: 'Apple MacBook Air 15-inch (M3 Chip)',
     category: 'Laptops',
-    price: 1199,
+    price: 90000,
     stock: 9,
     warranty: '1 Year Official Apple Care Warranty',
     specs: 'Apple M3 8-Core CPU, 10-Core GPU, 16GB Unified Memory, 512GB SSD, 18-Hr Battery',
@@ -74,7 +74,7 @@ const sampleProducts = [
   {
     name: 'HP Pavilion 15 Student Edition Laptop',
     category: 'Laptops',
-    price: 579,
+    price: 65000,
     stock: 20,
     warranty: '1 Year Official HP Warranty',
     specs: 'AMD Ryzen 5 7530U, 16GB RAM, 512GB NVMe SSD, 15.6" Full HD IPS Anti-Glare',
@@ -88,7 +88,7 @@ const sampleProducts = [
   {
     name: 'Apple Watch Series 10 GPS 45mm',
     category: 'Smart Watches',
-    price: 399,
+    price: 45000,
     stock: 14,
     warranty: '1 Year Official Apple Replacement Warranty',
     specs: 'Always-On Retina OLED, ECG & Blood Oxygen Sensor, Water Resistant 50m, WatchOS 11',
@@ -100,7 +100,7 @@ const sampleProducts = [
   {
     name: 'Samsung Galaxy Watch 7 Bluetooth 44mm',
     category: 'Smart Watches',
-    price: 289,
+    price: 35000,
     stock: 18,
     warranty: '1 Year Official Samsung Warranty',
     specs: 'Sapphire Crystal Glass, BioActive Health Sensor, Dual-Frequency GPS, 40-Hr Battery',
@@ -114,7 +114,7 @@ const sampleProducts = [
   {
     name: 'Samsung Galaxy S24 Ultra 5G (512GB)',
     category: 'Phones',
-    price: 1149,
+    price: 325500,
     stock: 7,
     warranty: '1 Year Official PTA-Approved Brand Warranty',
     specs: 'Snapdragon 8 Gen 3, 200MP Quad Camera, Titanium Frame, Built-in S-Pen, 5000mAh',
@@ -126,7 +126,7 @@ const sampleProducts = [
   {
     name: 'Xiaomi Redmi Note 13 Pro 5G (256GB)',
     category: 'Phones',
-    price: 329,
+    price: 25000,
     stock: 25,
     warranty: '1 Year Official Airlink / Safeway Warranty',
     specs: '200MP OIS Camera, 120Hz AMOLED Display, 67W Turbo Charging, 8GB RAM + 256GB Storage',
@@ -140,7 +140,7 @@ const sampleProducts = [
   {
     name: 'Anker Prime 20,000mAh 200W Power Bank',
     category: 'Mobile Accessories',
-    price: 89,
+    price: 7500,
     stock: 30,
     warranty: '1 Year Official Anker Replacement Warranty',
     specs: '20,000mAh Capacity, Dual USB-C + USB-A, Smart Digital OLED Screen, 100W Fast Input',
@@ -152,7 +152,7 @@ const sampleProducts = [
   {
     name: 'Sony WF-1000XM5 Wireless Noise Cancelling Earbuds',
     category: 'Mobile Accessories',
-    price: 199,
+    price: 3500,
     stock: 16,
     warranty: '6 Months Official Safeway Replacement Warranty',
     specs: 'Industry-Leading ANC, LDAC Hi-Res Audio, 24-Hr Total Battery, Multipoint Bluetooth 5.3',
@@ -166,7 +166,7 @@ const sampleProducts = [
   {
     name: 'Baseus 11-in-1 USB-C Thunderbolt Docking Station',
     category: 'Laptop Accessories',
-    price: 65,
+    price: 6000,
     stock: 28,
     warranty: '1 Year Official Safeway Replacement Warranty',
     specs: 'Dual 4K HDMI, 100W PD Pass-Through, Gigabit Ethernet, SD/TF Card Reader, 3x USB 3.0',
@@ -178,7 +178,7 @@ const sampleProducts = [
   {
     name: 'Cooler Master Ergonomic Aluminum Laptop Cooling Stand',
     category: 'Laptop Accessories',
-    price: 45,
+    price: 10000,
     stock: 35,
     warranty: '6 Months Safeway Warranty',
     specs: '6-Level Height Adjustment, Dual Silent 140mm LED Fans, Fits 13" to 17.3" Laptops',
@@ -192,7 +192,7 @@ const sampleProducts = [
   {
     name: 'Keychron K8 Pro Wireless Mechanical Keyboard',
     category: 'PC Accessories',
-    price: 109,
+    price: 3450,
     stock: 22,
     warranty: '1 Year Official Safeway Replacement Warranty',
     specs: 'Hot-Swappable Gateron Red Switches, QMK/VIA Programmable, PBT Keycaps, RGB Backlight',
@@ -204,7 +204,7 @@ const sampleProducts = [
   {
     name: 'Logitech G Pro X Superlight 2 Wireless Gaming Mouse',
     category: 'PC Accessories',
-    price: 139,
+    price: 1500,
     stock: 19,
     warranty: '1 Year Official Logitech Warranty',
     specs: '60g Ultra-Lightweight, HERO 2 32K DPI Sensor, LIGHTFORCE Hybrid Optical Switches, 95-Hr Battery',
@@ -239,8 +239,20 @@ const seedDatabase = async () => {
         role: 'admin'
       },
       {
-        name: 'Ali Raza (FYP Student)',
-        email: 'ali@student.edu.pk',
+        name: 'Sadia (FYP Student)',
+        email: 'sadia@student.edu.pk',
+        password: hashedPassword,
+        role: 'customer'
+      },
+      {
+        name: 'iqra (FYP Student)',
+        email: 'iqra@student.edu.pk',
+        password: hashedPassword,
+        role: 'customer'
+      },
+      {
+        name: 'Faizan (FYP Student)',
+        email: 'faizan@student.edu.pk',
         password: hashedPassword,
         role: 'customer'
       }
