@@ -1,15 +1,15 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-// Yahan apne CartContext ka sahi path dein (agar folder different hai)
-import { CartContext } from '../context/CartContext'; 
+// Yahan humne useCart hook import kiya hai jo error nahi dega
+import { useCart } from '../context/CartContext'; 
 
 export default function ProductDetails() {
   const { id } = useParams();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   
-  // Cart context se addToCart function nikala
-  const { addToCart } = useContext(CartContext); 
+  // Custom hook se addToCart function nikala
+  const { addToCart } = useCart(); 
 
   useEffect(() => {
     const fetchProduct = async () => {

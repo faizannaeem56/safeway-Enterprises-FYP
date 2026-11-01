@@ -1,100 +1,82 @@
-/**
- * ============================================================================
- * FILE: frontend/src/pages/ProductDetails.jsx
- * PURPOSE: Single product ki details (image, price, description) show karna.
- * FIX: CartContext ki jagah useCart hook import kiya gaya hai taake build fail na ho.
- * ============================================================================
- */
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
-import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-// CartContext.jsx ki aakhri line se 'useCart' custom hook import kiya
-import { useCart } from '../context/CartContext'; 
+const CartContext = createContext();
 
-export default function ProductDetails() {
-  // URL se product ka ID nikalne ke liye
-  const { id } = useParams();
-  const [product, setProduct] = useState(null);
-  const [loading, setLoading] = useState(true);
-  
-  // Custom hook useCart() call kar ke addToCart function nikal liya
-  const { addToCart } = useCart(); 
+export const CartProvider = ({ children }) => {
+  const [cartItems, setCartItems] = useState(() => {
+    try {
+      const saved = localStorage.getItem('safeway_cart');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
 
   useEffect(() => {
-    // Backend se specific product ka data mangwane ka function
-    const fetchProduct = async () => {
-      try {
-        const res = await fetch(`/api/products/${id}`);
-        const data = await res.json();
-        setProduct(data);
-      } catch (err) {
-        console.error('Error fetching product:', err);
-      } finally {
-        // Data aane ke baad loading false kar dein
-        setLoading(false);
+    try {
+      localStorage.setItem('safeway_cart', JSON.stringify(cartItems));
+    } catch (err) {
+      console.error('Failed to persist cart:', err);
+    }
+  }, [cartItems]);
+
+  const addToCart = (product) => {
+    setCartItems((prevItems) => {
+      const existingIndex = prevItems.findIndex((item) => item._id === product._id);
+      if (existingIndex > -1) {
+        const updated = [...prevItems];
+        updated[existingIndex] = {
+          ...updated[existingIndex],
+          quantity: updated[existingIndex].quantity + 1
+        };
+        return updated;
       }
-    };
-    fetchProduct();
-  }, [id]);
+      return [...prevItems, { ...product, quantity: 1 }];
+    });
+  };
 
-  // Agar data abhi load ho raha hai
-  if (loading) {
-    return <div className="text-center py-20 text-slate-500">Loading Safeway Product...</div>;
-  }
+  const removeFromCart = (productId) => {
+    setCartItems((prevItems) => prevItems.filter((item) => item._id !== productId));
+  };
 
-  // Agar product database mein na mile
-  if (!product || product.message === "Product not found") {
-    return (
-      <div className="text-center py-20">
-        <h2 className="text-2xl font-bold text-slate-900">Product Not Found</h2>
-        <Link to="/shop" className="text-blue-600 hover:underline mt-4 inline-block">Go back to Shop</Link>
-      </div>
+  const updateQuantity = (productId, newQuantity) => {
+    if (newQuantity < 1) {
+      removeFromCart(productId);
+      return;
+    }
+    setCartItems((prevItems) =>
+      prevItems.map((item) =>
+        item._id === productId ? { ...item, quantity: newQuantity } : item
+      )
     );
-  }
+  };
 
-  // Product ka data theek aane par yeh UI show hoga
+  const clearCart = () => {
+    setCartItems([]);
+  };
+
+  const totalItemsCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const shippingFee = subtotal === 0 || subtotal >= 25000 ? 0 : 10;
+  const totalBill = subtotal + shippingFee;
+
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      <Link to="/shop" className="text-blue-600 hover:underline text-sm font-semibold mb-6 inline-block">
-        &larr; Back to Shop
-      </Link>
-      
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col md:flex-row">
-        {/* Product Image Section */}
-        <div className="md:w-1/2 bg-slate-100 p-8 flex items-center justify-center">
-          <img 
-            src={product.image || product.imageUrl || 'https://via.placeholder.com/500'} 
-            alt={product.name} 
-            className="max-w-full max-h-96 object-contain rounded-xl"
-          />
-        </div>
-        
-        {/* Product Details & Add to Cart Section */}
-        <div className="md:w-1/2 p-8 lg:p-12 flex flex-col justify-center">
-          <span className="text-xs font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-3 py-1 rounded-full w-fit mb-4">
-            {product.category}
-          </span>
-          <h1 className="text-3xl lg:text-4xl font-extrabold text-slate-900 mb-4">{product.name}</h1>
-          <p className="text-2xl font-extrabold text-slate-900 mb-6">
-            Rs. {Number(product.price).toLocaleString()}
-          </p>
-          <div className="text-slate-600 space-y-4 mb-8 text-sm lg:text-base leading-relaxed">
-            <p>{product.description}</p>
-            {product.specs && <p><strong>Specifications:</strong> {product.specs}</p>}
-            {product.warranty && <p><strong>Warranty:</strong> {product.warranty}</p>}
-          </div>
-          
-          <div className="mt-auto">
-            {/* Button click hone par yeh product ko cart mein bhej dega */}
-            <button 
-              onClick={() => addToCart(product)} 
-              className="w-full sm:w-auto px-8 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold transition shadow-sm"
-            >
-              Add to Cart
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <CartContext.Provider
+      value={{
+        cartItems,
+        addToCart,
+        removeFromCart,
+        updateQuantity,
+        clearCart,
+        totalItemsCount,
+        subtotal,
+        shippingFee,
+        totalBill
+      }}
+    >
+      {children}
+    </CartContext.Provider>
   );
-}
+};
+
+export const useCart = () => useContext(CartContext);
