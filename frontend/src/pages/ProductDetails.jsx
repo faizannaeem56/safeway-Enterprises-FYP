@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams, Link } from 'react-router-dom';
 // Yahan apne CartContext ka sahi path dein (agar folder different hai)
-import { CartContext } from '../context/CartContext'; 
+import  CartContext  from '../context/CartContext'; 
 
 export default function ProductDetails() {
   const { id } = useParams();
