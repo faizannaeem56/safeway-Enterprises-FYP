@@ -147,8 +147,8 @@ export default function Auth() {
             className="text-xs font-semibold text-blue-600 hover:underline"
           >
             {isLoginMode
-              ? "Don't have an account? Create one here"
-              : 'Already have an account? Sign sign'}
+              ? "Don't have an account? Create here"
+              : 'Already have an account? Sign in'}
           </button>
         </div>
       </div>
