@@ -2,7 +2,7 @@
  * ============================================================================
  * FILE: frontend/src/main.jsx
  * PURPOSE: Mounts the React application and wraps it with global providers:
- *          1. BrowserRouter (for page navigation)
+ *          1. HashRouter (for page navigation)
  *          2. AuthProvider (for Login/Signup state & JWT management)
  *          3. CartProvider (for Shopping Cart state & bill calculation)
  * ============================================================================
@@ -18,12 +18,12 @@ import './index.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <BrowserRouter>
+    <HashRouter>
       <AuthProvider>
         <CartProvider>
           <App />
         </CartProvider>
       </AuthProvider>
-    </BrowserRouter>
+    </HashRouter>
   </React.StrictMode>
 );
