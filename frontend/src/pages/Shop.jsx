@@ -6,12 +6,19 @@
  * ============================================================================
  */
 
+// Import React and essential hooks for managing filter states and triggering API calls
 import React, { useState, useEffect } from 'react';
+
+// Import useSearchParams to read and update URL query parameters (e.g., /shop?category=Laptops)
 import { useSearchParams } from 'react-router-dom';
+
+// Import icons for the search input bar, filter controls, and reset button
 import { Search, SlidersHorizontal, RotateCcw } from 'lucide-react';
+
+// Import reusable ProductCard component to render each filtered product item
 import ProductCard from '../components/ProductCard';
 
-// All 7 required categories plus 'All'
+// All 7 required categories plus 'All' (used to render the interactive category filter pills)
 const CATEGORIES = [
   'All',
   'Computers',
@@ -23,45 +30,51 @@ const CATEGORIES = [
   'PC Accessories'
 ];
 
+// Main Shop Page component rendered at '/shop'
 export default function Shop() {
+  // Hook to read and manipulate the URL query string parameters
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Read initial category from URL query if user clicked a category card on Home page
+  // Read initial category from URL query if user clicked a category card on Home page or Footer
   const initialCategory = searchParams.get('category') || 'All';
 
-  // Filter States
-  const [selectedCategory, setSelectedCategory] = useState(initialCategory);
-  const [maxPrice, setMaxPrice] = useState(500000);
+  // Filter States — Changing any of these automatically triggers a fresh backend API request
+  const [selectedCategory, setSelectedCategory] = useState(initialCategory); // Active category tab
+  const [maxPrice, setMaxPrice] = useState(500000);                          // Maximum budget slider value
   const [sortOrder, setSortOrder] = useState('default'); // 'default' | 'lowToHigh' | 'highToLow'
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');                        // Keyword search text
 
-  // Products Data State
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // Products Data & Loading States
+  const [products, setProducts] = useState([]); // Stores the filtered array of products from MongoDB
+  const [loading, setLoading] = useState(true); // Shows a loading message while fetching data
 
-  // Sync category if URL parameter changes
+  // Sync category state if the URL parameter changes (e.g., user clicks a category link in the Footer while already on /shop)
   useEffect(() => {
     const urlCat = searchParams.get('category');
     if (urlCat) setSelectedCategory(urlCat);
   }, [searchParams]);
 
-  // Fetch filtered products from Backend API whenever any filter state changes
+  // Fetch filtered products from Backend API whenever any of the 4 filter states change
   useEffect(() => {
     const fetchFilteredProducts = async () => {
-      setLoading(true);
+      setLoading(true); // Start loading spinner/text
       try {
+        // Construct clean URL query parameters using the browser's built-in URLSearchParams API
         const params = new URLSearchParams();
         if (selectedCategory !== 'All') params.append('category', selectedCategory);
         params.append('maxPrice', maxPrice);
         if (sortOrder !== 'default') params.append('sort', sortOrder);
         if (searchQuery.trim() !== '') params.append('search', searchQuery.trim());
 
+        // Send GET request to Express backend (e.g., /api/products?category=Laptops&maxPrice=500000&sort=lowToHigh)
         const res = await fetch(`/api/products?${params.toString()}`);
         const data = await res.json();
+        // Safely store the returned products array in state
         setProducts(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error('Error loading filtered products:', err);
       } finally {
+        // Hide loading state once the fetch completes or fails
         setLoading(false);
       }
     };
@@ -69,18 +82,18 @@ export default function Shop() {
     fetchFilteredProducts();
   }, [selectedCategory, maxPrice, sortOrder, searchQuery]);
 
-  // Handler to reset all active filters
+  // Handler to reset all active filters back to their default state
   const handleResetFilters = () => {
     setSelectedCategory('All');
-    setMaxPrice(2000);
+    setMaxPrice(1000000);
     setSortOrder('default');
     setSearchQuery('');
-    setSearchParams({});
+    setSearchParams({}); // Clear ?category=... from the browser URL bar
   };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      {/* Page Title */}
+      {/* Page Header Title & Subtitle */}
       <div className="mb-8">
         <h1 className="text-3xl font-extrabold text-slate-900">Safeway Tech Catalog</h1>
         <p className="text-sm text-slate-600 mt-1">
@@ -88,15 +101,17 @@ export default function Shop() {
         </p>
       </div>
 
-      {/* Category Pills Bar */}
+      {/* Category Pills Bar — Allows 1-click switching between 'All' and the 7 tech departments */}
       <div className="flex flex-wrap gap-2 mb-6">
         {CATEGORIES.map((category) => (
           <button
             key={category}
             onClick={() => {
+              // Update selected category state and sync it with the browser URL query string
               setSelectedCategory(category);
               setSearchParams(category === 'All' ? {} : { category });
             }}
+            // Highlight the currently active category pill in blue; keep inactive pills white
             className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition ${
               selectedCategory === category
                 ? 'bg-blue-600 text-white shadow-sm'
@@ -108,9 +123,10 @@ export default function Shop() {
         ))}
       </div>
 
-      {/* Filter & Sort Controls Toolbar */}
+      {/* Filter & Sort Controls Toolbar (4-column responsive bar) */}
       <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm mb-8 grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
-        {/* 1. Keyword Search */}
+        
+        {/* 1. Keyword Search Input Box */}
         <div className="relative">
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
@@ -122,7 +138,7 @@ export default function Shop() {
           />
         </div>
 
-        {/* 2. Price Range Slider */}
+        {/* 2. Price Range Slider (Filters products with price <= maxPrice) */}
         <div>
           <div className="flex justify-between text-xs font-semibold text-slate-700 mb-1">
             <span>Max Price Budget:</span>
@@ -134,12 +150,13 @@ export default function Shop() {
             max="500000"
             step="500"
             value={maxPrice}
+            // Convert slider string value to Number and update state
             onChange={(e) => setMaxPrice(Number(e.target.value))}
             className="w-full accent-blue-600 cursor-pointer"
           />
         </div>
 
-        {/* 3. Price Sort Dropdown (Low to High / High to Low) */}
+        {/* 3. Price Sort Dropdown (Default Newest, Low to High, or High to Low) */}
         <div>
           <select
             value={sortOrder}
@@ -163,10 +180,12 @@ export default function Shop() {
         </div>
       </div>
 
-      {/* Product Grid */}
+      {/* Product Grid Display (Handles Loading state, Empty state, and Results grid) */}
       {loading ? (
+        /* Loading State */
         <div className="text-center py-16 text-slate-500">Loading Safeway products...</div>
       ) : products.length === 0 ? (
+        /* Empty Results State (when no products match the current filter combination) */
         <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center">
           <p className="text-base font-bold text-slate-800 mb-1">No matching products found</p>
           <p className="text-xs text-slate-500 mb-4">
@@ -180,6 +199,7 @@ export default function Shop() {
           </button>
         </div>
       ) : (
+        /* 3-Column Responsive Product Grid */
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {products.map((product) => (
             <ProductCard key={product._id} product={product} />

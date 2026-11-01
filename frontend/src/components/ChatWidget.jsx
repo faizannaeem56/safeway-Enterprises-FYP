@@ -8,20 +8,27 @@
  * ============================================================================
  */
 
+// Import React and essential hooks:
+// - useState: to manage chat open/close state, user input, typing status, and message history
+// - useRef: to reference the bottom of the chat list for automatic smooth scrolling
+// - useEffect: to trigger auto-scroll whenever a new message arrives
 import React, { useState, useRef, useEffect } from 'react';
+
+// Import clean UI icons for the chat bubble, close button, send arrow, and AI bot avatar
 import { MessageSquare, X, Send, Sparkles, Bot } from 'lucide-react';
 
+// Main ChatWidget component rendered globally inside App.jsx so it is available on every page
 export default function ChatWidget() {
-  // State to toggle the floating chat window open or closed
+  // State to toggle the floating chat window open (true) or closed (false)
   const [isOpen, setIsOpen] = useState(false);
 
-  // State for the current user input text
+  // State for the current user input text inside the message text box
   const [input, setInput] = useState('');
 
-  // State for loading indicator while Gemini generates a response
+  // State for loading indicator while Gemini generates a response on the backend
   const [isTyping, setIsTyping] = useState(false);
 
-  // Conversation history state
+  // Conversation history state initialized with a friendly welcome greeting from the AI model
   const [messages, setMessages] = useState([
     {
       role: 'model',
@@ -29,25 +36,29 @@ export default function ChatWidget() {
     }
   ]);
 
+  // Create a DOM reference attached to an empty div at the very bottom of the message list
   const messagesEndRef = useRef(null);
 
-  // Auto-scroll to the latest message whenever messages update
+  // Auto-scroll to the latest message whenever `messages` array updates or the chat window opens
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isOpen]);
 
   /**
    * Function: Send the customer's question to our Node.js Gemini API backend
+   * Parameter `customPrompt`: Optional preset question string passed when clicking a quick suggestion chip
    */
   const handleSendMessage = async (customPrompt) => {
+    // Use the quick suggestion chip text if provided; otherwise use the text box `input` value
     const questionText = (customPrompt ?? input).trim();
+    // Prevent sending empty messages or sending multiple requests while the AI is already replying
     if (!questionText || isTyping) return;
 
-    // 1. Append the user's message to the chat window immediately
+    // 1. Append the user's message to the chat window immediately for instant UI feedback
     const updatedMessages = [...messages, { role: 'user', text: questionText }];
     setMessages(updatedMessages);
-    setInput('');
-    setIsTyping(true);
+    setInput(''); // Clear the input field after sending
+    setIsTyping(true); // Show the "Gemini AI is checking Safeway inventory..." indicator
 
     try {
       // 2. Call our backend route `POST /api/chat`
@@ -56,10 +67,12 @@ export default function ChatWidget() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: questionText,
+          // Pass conversation context (slice(1) skips the initial static greeting message)
           history: messages.slice(1) // Pass conversation context
         })
       });
 
+      // Parse the JSON reply returned by the Express backend
       const data = await response.json();
 
       // 3. Append Gemini's dynamic answer to the chat window
@@ -71,6 +84,7 @@ export default function ChatWidget() {
         }
       ]);
     } catch (error) {
+      // Fallback error message if the backend server is offline or unreachable
       setMessages((prev) => [
         ...prev,
         {
@@ -79,16 +93,19 @@ export default function ChatWidget() {
         }
       ]);
     } finally {
+      // Hide the typing indicator whether the request succeeded or failed
       setIsTyping(false);
     }
   };
 
   return (
+    // Fixed container anchored to the bottom-right corner of the screen with a high z-index (z-50)
     <div className="fixed bottom-5 right-5 z-50">
-      {/* Floating Chat Window (Visible when `isOpen` is true) */}
+      {/* Floating Chat Window (Visible only when `isOpen` is true) */}
       {isOpen && (
         <div className="w-80 sm:w-96 h-[480px] bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden mb-3">
-          {/* Header */}
+          
+          {/* Top Chat Header with AI Bot Icon, Title, and Close ('X') Button */}
           <div className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-4 py-3.5 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
@@ -103,6 +120,7 @@ export default function ChatWidget() {
                 </span>
               </div>
             </div>
+            {/* Button to minimize/close the chat popup */}
             <button
               onClick={() => setIsOpen(false)}
               className="p-1 rounded-lg hover:bg-white/20 transition"
@@ -111,13 +129,15 @@ export default function ChatWidget() {
             </button>
           </div>
 
-          {/* Messages List */}
+          {/* Scrollable Messages List Area */}
           <div className="flex-grow p-3.5 overflow-y-auto space-y-3 bg-slate-50">
+            {/* Loop through all chat messages and align user messages to the right, AI replies to the left */}
             {messages.map((msg, idx) => (
               <div
                 key={idx}
                 className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
+                {/* Message Bubble: Blue background for User, White card for Gemini Model */}
                 <div
                   className={`max-w-[82%] rounded-2xl px-3.5 py-2.5 text-xs leading-relaxed whitespace-pre-line ${
                     msg.role === 'user'
@@ -129,6 +149,8 @@ export default function ChatWidget() {
                 </div>
               </div>
             ))}
+
+            {/* Conditional Typing Indicator shown while waiting for the backend response */}
             {isTyping && (
               <div className="flex justify-start">
                 <div className="bg-white border border-slate-200 rounded-2xl px-3.5 py-2 text-xs text-slate-500">
@@ -136,6 +158,8 @@ export default function ChatWidget() {
                 </div>
               </div>
             )}
+
+            {/* Invisible anchor div used by `messagesEndRef` to scroll down automatically */}
             <div ref={messagesEndRef} />
           </div>
 
@@ -154,14 +178,15 @@ export default function ChatWidget() {
             </button>
           </div>
 
-          {/* Input Box */}
+          {/* Bottom Message Input Form */}
           <form
             onSubmit={(e) => {
-              e.preventDefault();
+              e.preventDefault(); // Prevent default browser page reload on form submit
               handleSendMessage();
             }}
             className="p-2.5 bg-white border-t border-slate-200 flex items-center gap-2"
           >
+            {/* Controlled text input bound to the `input` state */}
             <input
               type="text"
               value={input}
@@ -169,6 +194,7 @@ export default function ChatWidget() {
               placeholder="Ask about products, prices, or warranty..."
               className="flex-grow text-xs px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-blue-500"
             />
+            {/* Submit Button (disabled while AI is currently typing a response) */}
             <button
               type="submit"
               disabled={isTyping}
@@ -180,7 +206,7 @@ export default function ChatWidget() {
         </div>
       )}
 
-      {/* Floating Toggle Button */}
+      {/* Floating Toggle Button (Always visible at bottom-right of screen) */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 px-4 py-3 rounded-full bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-semibold text-sm shadow-lg hover:shadow-xl transition"

@@ -6,22 +6,42 @@
  * ============================================================================
  */
 
+// Import React and hooks for local state management and side-effects
 import React, { useState, useEffect } from 'react';
+
+// Import Link from react-router-dom for client-side navigation
 import { Link } from 'react-router-dom';
+
+// Import Lucide icons for package box, mail envelope, and refresh button
 import { Package, Mail, RefreshCw } from 'lucide-react';
+
+// Import useAuth hook to read the logged-in user details
 import { useAuth } from '../context/AuthContext';
 
+// Main Myorders customer portal page component rendered at '/orders'
 export default function Myorders() {
+  // Get current logged-in user from AuthContext
   const { user } = useAuth();
+
+  // State array to store customer orders fetched from MongoDB
   const [orders, setorders] = useState([]);
+
+  // State array to store customer support inquiries and admin replies fetched from MongoDB
   const [messages, setMessages] = useState([]);
+
+  // Loading state indicator
   const [loading, setLoading] = useState(true);
 
+  /**
+   * Function: Fetches both customer orders and support messages in parallel from the backend
+   */
   const fetchCustomerData = async () => {
     setLoading(true);
     try {
+      // 1. Try to get the user email directly from the AuthContext user object
       let userEmail = user?.email || '';
 
+      // 2. Fallback: If AuthContext user is null (e.g., direct page reload), check browser localStorage keys
       if (!userEmail) {
         const userInfoStr = localStorage.getItem('userInfo') || localStorage.getItem('user') || localStorage.getItem('customerInfo');
         if (userInfoStr) {
@@ -32,6 +52,7 @@ export default function Myorders() {
 
       console.log("Fetching customer portal data for email:", userEmail);
 
+      // If no email is found anywhere, clear data and stop loading
       if (!userEmail) {
         setorders([]);
         setMessages([]);
@@ -39,6 +60,7 @@ export default function Myorders() {
         return;
       }
 
+      // Configure request headers with the custom 'user-email' header (fixes Vercel query-drop bug)
       const config = {
         headers: {
           'Content-Type': 'application/json',
@@ -46,8 +68,10 @@ export default function Myorders() {
         }
       };
 
+      // Construct URL query parameter string (?email=...)
       const queryParam = `?email=${encodeURIComponent(userEmail)}`;
       
+      // PARALLEL FETCHING: Use Promise.all to fetch orders and support messages simultaneously for better performance
       const [ordRes, msgRes] = await Promise.all([
         fetch(`/api/orders${queryParam}`, config),
         fetch(`/api/messages${queryParam}`, config)
@@ -59,6 +83,7 @@ export default function Myorders() {
       console.log("Fetched Orders:", ordData);
       console.log("Fetched Messages:", msgData); // Console mein check karne ke liye ke messages aaye ya nahi
 
+      // Update state if responses are valid arrays
       if (Array.isArray(ordData)) setorders(ordData);
       
       // Yahan hum ensure kar rahe hain ke agar array aaye toh state set ho jaye
@@ -74,12 +99,15 @@ export default function Myorders() {
     }
   };
 
+  // Trigger data fetch whenever the `user` state updates
   useEffect(() => {
     fetchCustomerData();
   }, [user]);
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+      
+      {/* Top Header & Refresh Button Toolbar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <span className="text-xs font-bold uppercase tracking-wider text-blue-600">
@@ -92,6 +120,7 @@ export default function Myorders() {
             Live data fetched from MongoDB orders and messages collections.
           </p>
         </div>
+        {/* Refresh button to manually re-fetch latest order statuses from the database */}
         <button
           onClick={fetchCustomerData}
           className="px-4 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-semibold flex items-center gap-1.5 w-fit"
@@ -101,6 +130,7 @@ export default function Myorders() {
         </button>
       </div>
 
+      {/* SECTION 1: PLACED HARDWARE ORDERS */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="px-5 py-4 bg-slate-900 text-white flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -122,8 +152,11 @@ export default function Myorders() {
           <div className="divide-y divide-slate-200">
             {orders.map((ord) => (
               <div key={ord._id} className="p-5 hover:bg-slate-50 transition">
+                
+                {/* Order Header Row: Order ID, Customer Name, Date, Status Badge, and Total Bill */}
                 <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
                   <div className="flex flex-wrap items-center gap-2">
+                    {/* Display last 6 characters of MongoDB ObjectId in uppercase */}
                     <span className="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 font-bold text-xs font-mono">
                       #{String(ord._id).slice(-6).toUpperCase()}
                     </span>
@@ -135,6 +168,7 @@ export default function Myorders() {
                     </span>
                   </div>
                   <div className="flex items-center gap-2.5">
+                    {/* Dynamic Status Badge (Emerald for Delivered, Blue for Shipped, Red for Cancelled, Amber for Processing) */}
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-bold ${
                         ord.status === 'Delivered'
@@ -154,6 +188,7 @@ export default function Myorders() {
                   </div>
                 </div>
 
+                {/* Order Details Grid: Ordered Items List & Shipping Address */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-xs">
                   <div className="md:col-span-2 space-y-1">
                     <div className="font-bold text-slate-700 mb-1">Ordered Items:</div>
@@ -181,6 +216,7 @@ export default function Myorders() {
         )}
       </div>
 
+      {/* SECTION 2: CONTACT US INQUIRIES & ADMIN REPLIES */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="px-5 py-4 bg-slate-100 border-b border-slate-200 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -209,6 +245,7 @@ export default function Myorders() {
                       — sent by {msg.name} ({msg.email})
                     </span>
                   </div>
+                  {/* Message Status Badge ('Replied', 'Read', or 'Unread') */}
                   <span
                     className={`px-2.5 py-0.5 rounded-full font-bold text-[11px] ${
                       msg.status === 'Replied'
@@ -222,6 +259,8 @@ export default function Myorders() {
                   </span>
                 </div>
                 <p className="text-slate-600">{msg.message}</p>
+                
+                {/* CONDITIONAL ADMIN REPLY BOX: Renders only if the Admin has replied to this inquiry */}
                 {msg.adminReply && (
                   <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900">
                     <strong>Official Safeway Admin Reply:</strong> {msg.adminReply}

@@ -4,8 +4,14 @@
  * PURPOSE: Complete Store Admin Dashboard connected to MongoDB REST APIs
  * ============================================================================
  */
+
+// Import React and hooks for local state management and lifecycle side-effects
 import React, { useState, useEffect } from 'react';
+
+// Import Link from react-router-dom for client-side navigation
 import { Link } from 'react-router-dom';
+
+// Import Lucide icons for CRUD actions, status checks, stats, and mail
 import {
   Plus,
   Pencil,
@@ -18,8 +24,11 @@ import {
   Send,
   RefreshCw
 } from 'lucide-react';
+
+// Import useAuth hook to verify the current logged-in user role and get the JWT token
 import { useAuth } from '../context/AuthContext';
 
+// List of official store categories used in the product creation and editing form dropdown
 const CATEGORIES = [
   'Computer',
   'Laptops',
@@ -30,19 +39,23 @@ const CATEGORIES = [
   'PC Accessories'
 ];
 
+// Main AdminPanel dashboard component rendered at '/admin'
 export default function AdminPanel() {
+  // Extract user object from AuthContext
   const { user } = useAuth();
+
+  // State to control which sub-navigation tab is active ('orders', 'messages', or 'products')
   const [activeTab, setActiveTab] = useState('orders');
 
   // Live MongoDB State Collections
-  const [products, setProducts] = useState([]);
-  const [orders, setorders] = useState([]);
-  const [messages, setMessages] = useState([]);
-  const [replyDrafts, setReplyDrafts] = useState({});
-  const [statusMessage, setStatusMessage] = useState('');
+  const [products, setProducts] = useState([]);       // Stores all store products
+  const [orders, setorders] = useState([]);           // Stores incoming customer orders
+  const [messages, setMessages] = useState([]);       // Stores Contact Us support inquiries
+  const [replyDrafts, setReplyDrafts] = useState({}); // Stores admin reply text keyed by message ID
+  const [statusMessage, setStatusMessage] = useState(''); // Temporary notification banner text
 
-  // Product Form State
-  const [editingId, setEditingId] = useState(null);
+  // Product Form State (Used for both Adding new products and Editing existing ones)
+  const [editingId, setEditingId] = useState(null); // Null if adding new; holds product _id if editing
   const [formData, setFormData] = useState({
     name: '',
     category: 'Laptops',
@@ -55,23 +68,32 @@ export default function AdminPanel() {
     featured: false
   });
 
+  // Helper function to display a temporary notification banner on screen for 3.5 seconds
   const showBanner = (msg) => {
     setStatusMessage(msg);
     setTimeout(() => setStatusMessage(''), 3500);
   };
 
+  /**
+   * Function: Fetches all admin data (products, orders, messages) simultaneously from backend REST APIs
+   */
   const fetchAllAdminData = async () => {
     try {
+      // Include Authorization Bearer token in headers if available for secured routes
       const headers = user?.token ? { Authorization: `Bearer ${user.token}` } : {};
+      
+      // PARALLEL FETCHING: Fetch products, orders, and messages concurrently using Promise.all
       const [prodRes, ordRes, msgRes] = await Promise.all([
         fetch('/api/products'),
         fetch('/api/orders', { headers }),
         fetch('/api/messages', { headers })
       ]);
+      
       const prodData = await prodRes.json();
       const ordData = await ordRes.json();
       const msgData = await msgRes.json();
 
+      // Update states if responses are valid arrays
       if (Array.isArray(prodData)) setProducts(prodData);
       if (Array.isArray(ordData)) setorders(ordData);
       if (Array.isArray(msgData)) setMessages(msgData);
@@ -80,12 +102,17 @@ export default function AdminPanel() {
     }
   };
 
+  // Fetch all admin data on mount or whenever the `user` state changes
   useEffect(() => {
     if (user && user.role === 'admin') {
       fetchAllAdminData();
     }
   }, [user]);
 
+  // ============================================================================
+  // ROLE SECURITY GUARD (HTTP 403 Forbidden View)
+  // If user is not logged in or is not an admin, block access and display an error card
+  // ============================================================================
   if (!user || user.role !== 'admin') {
     return (
       <div className="max-w-lg mx-auto px-4 py-16 text-center">
@@ -111,6 +138,9 @@ export default function AdminPanel() {
     );
   }
 
+  /**
+   * Function: Update the fulfillment status of an order (e.g., 'Processing' -> 'Shipped') via PUT /api/orders/:id/status
+   */
   const handleorderstatusChange = async (orderId, newStatus) => {
     try {
       const res = await fetch(`/api/orders/${orderId}/status`, {
@@ -123,13 +153,16 @@ export default function AdminPanel() {
       });
       if (res.ok) {
         showBanner(`Order status updated to "${newStatus}" in MongoDB!`);
-        fetchAllAdminData();
+        fetchAllAdminData(); // Refresh data to reflect changes
       }
     } catch (err) {
       console.error(err);
     }
   };
 
+  /**
+   * Function: Delete an order record permanently from MongoDB via DELETE /api/orders/:id
+   */
   const handleDeleteOrder = async (orderId) => {
     try {
       await fetch(`/api/orders/${orderId}`, {
@@ -143,6 +176,9 @@ export default function AdminPanel() {
     }
   };
 
+  /**
+   * Function: Save an official admin reply to a customer message via PUT /api/messages/:id
+   */
   const handleSendReply = async (msgId) => {
     const replyText = (replyDrafts[msgId] || '').trim();
     if (!replyText) return;
@@ -156,6 +192,7 @@ export default function AdminPanel() {
         body: JSON.stringify({ status: 'Replied', adminReply: replyText })
       });
       if (res.ok) {
+        // Clear draft text for this specific message ID
         setReplyDrafts({ ...replyDrafts, [msgId]: '' });
         showBanner('Official reply saved to MongoDB and sent to customer!');
         fetchAllAdminData();
@@ -165,6 +202,9 @@ export default function AdminPanel() {
     }
   };
 
+  /**
+   * Function: Mark a customer message status as 'Read' via PUT /api/messages/:id
+   */
   const handleMarkMessageRead = async (msgId) => {
     try {
       await fetch(`/api/messages/${msgId}`, {
@@ -181,6 +221,9 @@ export default function AdminPanel() {
     }
   };
 
+  /**
+   * Function: Delete a customer message inquiry via DELETE /api/messages/:id
+   */
   const handleDeleteMessage = async (msgId) => {
     try {
       await fetch(`/api/messages/${msgId}`, {
@@ -194,8 +237,12 @@ export default function AdminPanel() {
     }
   };
 
+  /**
+   * Function: Handle Product Form Submission (Handles both POST for new products and PUT for editing)
+   */
   const handleProductSubmit = async (e) => {
     e.preventDefault();
+    // If editingId exists, send PUT request to update; otherwise send POST request to create a new product
     const url = editingId ? `/api/products/${editingId}` : '/api/products';
     const method = editingId ? 'PUT' : 'POST';
 
@@ -208,8 +255,8 @@ export default function AdminPanel() {
         },
         body: JSON.stringify({
           ...formData,
-          price: Number(formData.price),
-          stock: Number(formData.stock)
+          price: Number(formData.price), // Ensure price is sent as a Number
+          stock: Number(formData.stock)  // Ensure stock is sent as a Number
         })
       });
 
@@ -219,7 +266,8 @@ export default function AdminPanel() {
       }
 
       showBanner(editingId ? 'Product updated in MongoDB!' : 'New product added to MongoDB!');
-      setEditingId(null);
+      setEditingId(null); // Reset edit mode
+      // Reset form back to default values
       setFormData({
         name: '',
         category: 'Laptops',
@@ -237,6 +285,9 @@ export default function AdminPanel() {
     }
   };
 
+  /**
+   * Function: Populate the product form with existing product details when the Admin clicks the 'Edit' pencil button
+   */
   const handleEditClick = (product) => {
     setEditingId(product._id);
     setFormData({
@@ -252,6 +303,9 @@ export default function AdminPanel() {
     });
   };
 
+  /**
+   * Function: Permanently delete a product from MongoDB via DELETE /api/products/:id
+   */
   const handleDeleteProduct = async (id) => {
     try {
       const response = await fetch(`/api/products/${id}`, {
@@ -267,6 +321,7 @@ export default function AdminPanel() {
     }
   };
 
+  // Computed KPI Metrics for Top Summary Cards
   const unreadCount = messages.filter((m) => m.status === 'Unread').length;
   const pendingorders = orders.filter((o) => o.status === 'Processing').length;
   const totalRevenue = orders
@@ -275,6 +330,8 @@ export default function AdminPanel() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      
+      {/* Header & Data Sync Button */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
           <span className="text-xs font-bold uppercase tracking-wider text-amber-600">
@@ -296,14 +353,17 @@ export default function AdminPanel() {
         </button>
       </div>
 
+      {/* Notification Banner */}
       {statusMessage && (
         <div className="mb-6 p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-bold">
           ✓ {statusMessage}
         </div>
       )}
 
-      {/* Top KPI Summary Cards */}
+      {/* Top KPI Summary Cards (Clicking any card switches to that respective tab) */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        
+        {/* KPI 1: Orders */}
         <div
           onClick={() => setActiveTab('orders')}
           className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm cursor-pointer hover:border-blue-400"
@@ -315,6 +375,7 @@ export default function AdminPanel() {
           <span className="text-xs text-amber-600 font-semibold">{pendingorders} Processing</span>
         </div>
 
+        {/* KPI 2: Messages */}
         <div
           onClick={() => setActiveTab('messages')}
           className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm cursor-pointer hover:border-blue-400"
@@ -326,6 +387,7 @@ export default function AdminPanel() {
           <span className="text-xs text-rose-600 font-semibold">{unreadCount} Unread in Inbox</span>
         </div>
 
+        {/* KPI 3: Inventory */}
         <div
           onClick={() => setActiveTab('products')}
           className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm cursor-pointer hover:border-blue-400"
@@ -377,7 +439,9 @@ export default function AdminPanel() {
         </button>
       </div>
 
-      {/* TAB 1: CUSTOMER orders */}
+      {/* ============================================================================
+          TAB 1: CUSTOMER ORDERS MANAGEMENT
+          ============================================================================ */}
       {activeTab === 'orders' && (
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="px-5 py-4 bg-slate-900 text-white flex items-center justify-between">
@@ -401,6 +465,7 @@ export default function AdminPanel() {
                       <span className="text-xs text-slate-500">({ord.customerEmail})</span>
                     </div>
                     <div className="flex items-center gap-2">
+                      {/* Status Dropdown: Updates order status on change */}
                       <select
                         value={ord.status || 'Processing'}
                         onChange={(e) => handleorderstatusChange(ord._id, e.target.value)}
@@ -423,6 +488,7 @@ export default function AdminPanel() {
                     </div>
                   </div>
 
+                  {/* Order Items & Shipping Address Details */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-xs">
                     <div className="md:col-span-2 space-y-1">
                       <div className="font-bold text-slate-700">Ordered Items:</div>
@@ -447,7 +513,9 @@ export default function AdminPanel() {
         </div>
       )}
 
-      {/* TAB 2: CUSTOMER MESSAGES INBOX */}
+      {/* ============================================================================
+          TAB 2: CUSTOMER MESSAGES INBOX & ADMIN REPLY SYSTEM
+          ============================================================================ */}
       {activeTab === 'messages' && (
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="px-5 py-4 bg-slate-900 text-white flex items-center justify-between">
@@ -488,16 +556,19 @@ export default function AdminPanel() {
                     </div>
                   </div>
 
+                  {/* Customer Message Body */}
                   <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800">
                     {msg.message}
                   </div>
 
+                  {/* Existing Admin Reply (if any) */}
                   {msg.adminReply && (
                     <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-900">
                       <strong>Sent Admin Reply:</strong> {msg.adminReply}
                     </div>
                   )}
 
+                  {/* Admin Reply Input Box */}
                   <div className="flex gap-2">
                     <input
                       type="text"
@@ -521,9 +592,13 @@ export default function AdminPanel() {
         </div>
       )}
 
-      {/* TAB 3: PRODUCTS INVENTORY CRUD */}
+      {/* ============================================================================
+          TAB 3: PRODUCT INVENTORY CRUD MANAGEMENT
+          ============================================================================ */}
       {activeTab === 'products' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          
+          {/* Left Column: Product Create / Edit Form */}
           <form
             onSubmit={handleProductSubmit}
             className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3.5 h-fit"
@@ -610,6 +685,7 @@ export default function AdminPanel() {
             </button>
           </form>
 
+          {/* Right 2 Columns: Products Table & Management Actions */}
           <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs">
@@ -633,12 +709,14 @@ export default function AdminPanel() {
                       <td className="p-3.5 font-bold">Rs. {prod.price}</td>
                       <td className="p-3.5">{prod.stock}</td>
                       <td className="p-3.5 text-right space-x-1.5 whitespace-nowrap">
+                        {/* Edit Button */}
                         <button
                           onClick={() => handleEditClick(prod)}
                           className="p-1.5 rounded-lg bg-blue-50 text-blue-600"
                         >
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
+                        {/* Delete Button */}
                         <button
                           onClick={() => handleDeleteProduct(prod._id)}
                           className="p-1.5 rounded-lg bg-red-50 text-red-600"
