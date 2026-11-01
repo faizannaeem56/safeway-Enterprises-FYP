@@ -98,9 +98,12 @@ app.use('/api/messages', messageRoutes);
 // Set the server port from the .env file, or default to port 5000 if not specified
 const PORT = process.env.PORT || 5000;
 
-// Start listening for incoming HTTP requests on the specified PORT
-app.listen(PORT, () => {
-console.log(`🚀 Safeway Enterprises Backend Server running on http://localhost:${PORT}`);
-});
+// Sirf local development mein app.listen chale, Vercel par serverless mode ho
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`🚀 Safeway Enterprises Backend Server running on http://localhost:${PORT}`);
+  });
+}
+
 // For VERCEL DEPLOYMENT:
 module.exports = app;
