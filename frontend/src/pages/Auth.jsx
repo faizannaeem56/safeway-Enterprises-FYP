@@ -70,7 +70,7 @@ export default function Auth() {
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Ali Raza"
+                placeholder="Faizan Naeem or Sadia Mushtaq or Iqra Naeem"
                 className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm"
               />
             </div>
