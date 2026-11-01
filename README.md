@@ -91,19 +91,26 @@ Seed the database with sample products across all 7 categories and default accou
 ```bash
 npm run seed
 ```
-Start the backend server:
+Start the backend server (locally for testing or deploy to cloud):
 ```bash
 npm run dev
 ```
 
-### Step 2: Setup the Frontend
+### Step 2: Setup the Frontend & Production API Connection
 Open a second terminal window:
 ```bash
 cd frontend
 npm install
+```
+Make sure your frontend API configuration file (or .env in frontend) points to your live backend URL instead of localhost:
+```
+VITE_API_URL=https://safeway-enterprises-fyp-faizan-naeem.vercel.app
+```
+
+Run the frontend development server:
+```
 npm run dev
 ```
-Open `http://localhost:5173` in your browser.
 
 ### Default Test Accounts (Created by `npm run seed`)
 - **Admin Account:** `admin@safeway.pk` / Password: `password123`
