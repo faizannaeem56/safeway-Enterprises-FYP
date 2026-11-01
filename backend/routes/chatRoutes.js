@@ -11,10 +11,16 @@
  * ============================================================================
  */
 
+// Import Express to create a modular router for the AI chat endpoint
 const express = require('express');
+
+// Import the official Google Generative AI SDK to communicate with the Gemini API
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+
+// Import the Product model to fetch live inventory data from MongoDB
 const Product = require('../models/Product');
 
+// Initialize an Express Router instance
 const router = express.Router();
 
 /**
@@ -24,15 +30,18 @@ const router = express.Router();
  */
 router.post('/', async (req, res) => {
   try {
+    // Extract the incoming user message and optional previous chat history from the request body
     const { message, history = [] } = req.body;
 
+    // Validate that the user actually typed a message
     if (!message || message.trim() === '') {
       return res.status(400).json({ message: 'Please enter a valid question.' });
     }
 
-    // 1. Check that the Google Gemini API key is configured in `.env`
+    // 1. Check that the Google Gemini API key is configured in the `.env` file
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
+      // If the API key is missing, return a user-friendly error message to the frontend chat UI
       return res.status(500).json({
         reply:
           '⚠️ Gemini API Key is missing on the server. Please add GEMINI_API_KEY to your backend/.env file.'
@@ -43,6 +52,8 @@ router.post('/', async (req, res) => {
     //    current product, category, price, stock status, warranty, and specification.
     const products = await Product.find({});
 
+    // Map through the array of product objects and convert them into a readable text format for the AI
+    // Example: "1. [Laptops] ASUS ROG — Price: Rs.250000 | Stock: 5 units available | Warranty: 1 Year | Specs: i7"
     const formattedCatalog = products
       .map(
         (p, idx) =>
@@ -50,9 +61,10 @@ router.post('/', async (req, res) => {
             p.stock > 0 ? `${p.stock} units available` : 'Out of Stock'
           } | Warranty: ${p.warranty} | Specs: ${p.specs}`
       )
-      .join('\n');
+      .join('\n'); // Join the mapped array into a single large multi-line string
 
     // 3. Construct the comprehensive System Prompt for Safeway Enterprises
+    // This serves as the 'Brain' and rulebook for the Gemini AI model
     const systemInstruction = `
 You are the official AI Customer Support Specialist for **Safeway Enterprises**, a premier technology and electronics e-commerce company.
 
@@ -82,57 +94,68 @@ ${formattedCatalog}
 - If a product is out of stock or not in our catalog, politely inform the customer and suggest the closest available alternative from our catalog.
 `;
 
-    // 4. Initialize the official Google Generative AI SDK
+    // 4. Initialize the official Google Generative AI SDK with the provided API key
     const genAI = new GoogleGenerativeAI(apiKey);
+    
+    // Configure the specific AI model to use and pass the system instructions
     const model = genAI.getGenerativeModel({
-      model: 'gemini-3.5-flash-lite',
-      systemInstruction
+      model: 'gemini-3.5-flash-lite', // Using the specific Gemini model provided by the developer
+      systemInstruction // Injects the live catalog and rules we built above
     });
 
     // 5. Convert previous chat history (if any) into Gemini's expected format
+    // This allows the AI to remember the context of the current conversation
     const formattedHistory = history
-      .filter((msg) => msg.role === 'user' || msg.role === 'model')
+      .filter((msg) => msg.role === 'user' || msg.role === 'model') // Ensure valid roles
       .map((msg) => ({
-        role: msg.role,
-        parts: [{ text: msg.text }]
+        role: msg.role, // 'user' or 'model'
+        parts: [{ text: msg.text }] // The actual message text content
       }));
 
-    // 6. Start a multi-turn chat session and send the customer's new message
+    // 6. Start a multi-turn chat session with the formatted history
     const chatSession = model.startChat({
       history: formattedHistory
     });
 
-    
-let result;
-const maxAttempts = 3;
+    let result;
+    const maxAttempts = 3;
 
-for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-  try {
-    result = await chatSession.sendMessage(message);
-    break;
-  } catch (error) {
-    const isTemporary =
-      /503|429|500|502|504|overloaded|high demand/i.test(
-        error.message || ''
-      );
+    // Retry mechanism loop: Try to send the message to the AI, and retry if the API is temporarily busy
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        // Attempt to send the current user message to the Gemini API
+        result = await chatSession.sendMessage(message);
+        break; // If successful, exit the retry loop immediately
+      } catch (error) {
+        // Check if the error is a temporary server issue (e.g., 503 Service Unavailable, 429 Too Many Requests)
+        const isTemporary =
+          /503|429|500|502|504|overloaded|high demand/i.test(
+            error.message || ''
+          );
 
-    if (!isTemporary || attempt === maxAttempts) {
-      throw error;
+        // If it's a permanent error (like wrong API key) or we ran out of attempts, throw the error down to the main catch block
+        if (!isTemporary || attempt === maxAttempts) {
+          throw error;
+        }
+
+        // Calculate exponential backoff delay (2 seconds, then 4 seconds...)
+        const delay = attempt * 2000;
+        console.log(
+          `Gemini temporarily unavailable. Retry ${attempt + 1}/${maxAttempts} in ${delay / 1000}s`
+        );
+
+        // Pause execution for the calculated delay duration before retrying
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
     }
-
-    const delay = attempt * 2000;
-    console.log(
-      `Gemini temporarily unavailable. Retry ${attempt + 1}/${maxAttempts} in ${delay / 1000}s`
-    );
-
-    await new Promise(resolve => setTimeout(resolve, delay));
-  }
-}
+    
+    // Extract the final text response generated by the AI
     const aiReply = result.response.text();
 
-    // 7. Return the dynamic Gemini AI response to the React frontend
+    // 7. Return the dynamic Gemini AI response back to the React frontend chat UI
     res.json({ reply: aiReply });
   } catch (error) {
+    // Handle API key errors, strict network blocks, or formatting issues
     console.error('Gemini AI Chat Error:', error.message);
     res.status(500).json({
       reply: 'Sorry, our AI assistant encountered a temporary connection issue. Please try again in a moment.',
@@ -141,4 +164,5 @@ for (let attempt = 1; attempt <= maxAttempts; attempt++) {
   }
 });
 
+// Export the router so it can be mounted at '/api/chat' in server.js
 module.exports = router;

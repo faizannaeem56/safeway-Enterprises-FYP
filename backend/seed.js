@@ -7,18 +7,28 @@
  * ============================================================================
  */
 
+// Import Mongoose to connect to MongoDB and run bulk database operations
 const mongoose = require('mongoose');
+
+// Import bcryptjs to encrypt the default password for our test user accounts
 const bcrypt = require('bcryptjs');
+
+// Import dotenv to load environment variables from the .env file
 const dotenv = require('dotenv');
+
+// Import all 4 Mongoose models so we can clear old data and insert fresh sample records
 const User = require('./models/User');
 const Product = require('./models/Product');
 const Order = require('./models/Order');
 const Message = require('./models/Message');
 
+// Load environment variables into process.env
 dotenv.config();
 
+// Use the MongoDB connection string from .env, or fall back to the MongoDB Atlas cloud cluster URI
 const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://contactsafewayent_db_user:0LY0qE33Bq36jsTd@cluster0.rztdgpc.mongodb.net/?retryWrites=true&w=majority';
 
+// Array of 15 initial tech products covering all 7 official store categories
 const sampleProducts = [
   // 1. Computers
   {
@@ -31,7 +41,7 @@ const sampleProducts = [
     description: 'Custom-built high-airflow desktop workstation and 1440p/4K gaming powerhouse engineered by Safeway Enterprises.',
     image: 'https://images.unsplash.com/photo-1587202372775-e229f172b9d7?auto=format&fit=crop&w=800&q=80',
     rating: 4.9,
-    featured: true
+    featured: true // Displayed on the Home Page featured section
   },
   {
     name: 'Dell OptiPlex 7010 Business Mini Tower PC',
@@ -215,28 +225,30 @@ const sampleProducts = [
   }
 ];
 
+// Main asynchronous function that resets and populates the database
 const seedDatabase = async () => {
   try {
+    // 1. Connect to the MongoDB database
     await mongoose.connect(MONGO_URI);
     console.log('Connected to MongoDB for seeding...');
 
-    // Clear existing records to avoid duplicates
+    // 2. Clear existing records from all 4 collections to avoid duplicate entries
     await User.deleteMany({});
     await Product.deleteMany({});
     await Order.deleteMany({});
     await Message.deleteMany({});
 
-    // Create hashed password for sample accounts
+    // 3. Create a hashed password ('password123') shared by all sample test accounts
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash('password123', salt);
 
-    // Insert Admin and Customer accounts
+    // Insert 1 Admin account and 3 Customer accounts (for each FYP group member)
     await User.insertMany([
       {
         name: 'Safeway Store Admin',
         email: 'admin@safeway.pk',
         password: hashedPassword,
-        role: 'admin'
+        role: 'admin' // Grants full access to the Admin Dashboard
       },
       {
         name: 'Sadia (FYP Student)',
@@ -258,10 +270,11 @@ const seedDatabase = async () => {
       }
     ]);
 
-    // Insert all 15 sample products across the 7 required categories
+    // Insert all 15 sample products across the 7 required categories and store the saved documents
     const insertedProducts = await Product.insertMany(sampleProducts);
 
     // 4. Insert initial realistic Customer orders into MongoDB
+    // We reference real MongoDB _ids from `insertedProducts` so relational links remain valid
     await Order.insertMany([
       {
         customerName: 'Ali Raza',
@@ -329,12 +342,15 @@ const seedDatabase = async () => {
       }
     ]);
 
+    // Log completion message and exit the Node process with code 0 (Success)
     console.log('✅ Database successfully seeded with 2 Users and 15 Products across all 7 categories!');
     process.exit(0);
   } catch (error) {
+    // Log error details and exit the Node process with code 1 (Failure)
     console.error('❌ Database seeding failed:', error.message);
     process.exit(1);
   }
 };
 
+// Execute the seeding function immediately when this script is run
 seedDatabase();
