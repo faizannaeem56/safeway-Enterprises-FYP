@@ -82,7 +82,7 @@ npm install
 Create a `.env` file inside the `backend/` folder (copy from `.env.example`):
 ```env
 PORT=5000
-MONGO_URI=mongodb://127.0.0.1:27017/safeway_enterprises
+MONGO_URI=mongodb+srv://contactsafewayent_db_user:0LY0qE33Bq36jsTd@cluster0.rztdgpc.mongodb.net/?retryWrites=true&w=majority
 JWT_SECRET=safeway_fyp_super_secret_key_2026
 GEMINI_API_KEY=your_actual_google_gemini_api_key_here
 ```

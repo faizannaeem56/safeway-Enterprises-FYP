@@ -17,7 +17,7 @@ const Message = require('./models/Message');
 
 dotenv.config();
 
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/safeway_enterprises';
+const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://contactsafewayent_db_user:0LY0qE33Bq36jsTd@cluster0.rztdgpc.mongodb.net/?retryWrites=true&w=majority';
 
 const sampleProducts = [
   // 1. Computers

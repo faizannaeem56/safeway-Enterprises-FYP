@@ -48,7 +48,7 @@ app.use(express.json());
 // ============================================================================
 
 // Read the MongoDB connection string from .env; if not found, use the local MongoDB database URL as a fallback
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/safeway_enterprises';
+const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/safeway_enmongodb+srv://contactsafewayent_db_user:0LY0qE33Bq36jsTd@cluster0.rztdgpc.mongodb.net/?retryWrites=true&w=majorityterprises';
 
 // Connect to MongoDB asynchronously using Promises (.then for success, .catch for error handling)
 mongoose
