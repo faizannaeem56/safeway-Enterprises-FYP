@@ -1,10 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useParams, Link } from 'react-router-dom';
+// Yahan apne CartContext ka sahi path dein (agar folder different hai)
+import { CartContext } from '../context/CartContext'; 
 
 export default function ProductDetails() {
   const { id } = useParams();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
+  
+  // Cart context se addToCart function nikala
+  const { addToCart } = useContext(CartContext); 
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -64,7 +69,10 @@ export default function ProductDetails() {
           </div>
           
           <div className="mt-auto">
-            <button className="w-full sm:w-auto px-8 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold transition shadow-sm">
+            <button 
+              onClick={() => addToCart(product)} 
+              className="w-full sm:w-auto px-8 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold transition shadow-sm"
+            >
               Add to Cart
             </button>
           </div>
