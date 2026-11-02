@@ -114,11 +114,4 @@ npm run dev
 
 ### Default Test Accounts (Created by `npm run seed`)
 - **Admin Account:** `admin@safeway.pk` / Password: `password123`
-- **Customer Account:** `ali@student.edu.pk` / Password: `password123`
-
-
-
-
-
-
-
+- **Customer Account:** `sadia@student.edu.pk` / Password: `password123`
